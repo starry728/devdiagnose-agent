@@ -31,7 +31,7 @@ Conda 环境位于 `.conda/devdiagnose`，VSCode 解释器选择其中的 `pytho
 | 本地检索 | 真实的关键词检索、requirements 约束过滤、LangGraph 检查点、证据报告；不调用模型、不推断已确认根因 |
 | 模型诊断 | Deep Agents 主助手，按需委派文档/代码专家；同样使用关键词工具；未执行代码，模型结论需核验 |
 
-复制 `.env.example` 为 `.env`，在本机填写 `LLM_API_KEY`、支持工具调用的 `LLM_MODEL` 和供应商的 `LLM_BASE_URL`，重启后可使用模型模式。密钥不要发到聊天中，不要提交 Git。
+复制 `.env.example` 为 `.env`，在本机填写 `LLM_API_KEY`，默认模板已设置 DeepSeek 官方接口和 `deepseek-flash`。也可改为其他支持工具调用的兼容供应商与型号。重启后可使用模型模式，详见 [模型接入说明](docs/MODEL_SETUP.md)。密钥不要发到聊天中，不要提交 Git。
 模型模式会把提问和检索到的资料片段发送给配置的模型供应商；本地检索不发送资料。
 
 ## Harness 首版
