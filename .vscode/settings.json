@@ -1,0 +1,1 @@
+{"python.defaultInterpreterPath":"${workspaceFolder}/.conda/devdiagnose/python.exe","python.terminal.activateEnvironment":false,"files.exclude":{"**/__pycache__":true},"search.exclude":{".conda":true,".runtime":true,"data":true,"frontend/node_modules":true}}
