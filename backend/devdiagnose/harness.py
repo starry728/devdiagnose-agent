@@ -5,6 +5,7 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import TypedDict
+from urllib.parse import urlparse
 
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.tools import tool
@@ -119,10 +120,20 @@ def build_model_agent(snapshot, saver, handler):
     from deepagents import create_deep_agent
     from langchain_openai import ChatOpenAI
 
+    base_url = os.getenv("LLM_BASE_URL") or None
+    # DeepSeek defaults to thinking mode, whose tool turns require reasoning_content
+    # round-tripping. The generic ChatOpenAI adapter does not preserve that field.
+    # Use the documented non-thinking mode until a native reasoning adapter is added.
+    extra_body = (
+        {"thinking": {"type": "disabled"}}
+        if urlparse(base_url or "").hostname == "api.deepseek.com"
+        else None
+    )
     model = ChatOpenAI(
         model=os.environ["LLM_MODEL"],
         api_key=os.environ["LLM_API_KEY"],
-        base_url=os.getenv("LLM_BASE_URL") or None,
+        base_url=base_url,
+        extra_body=extra_body,
         max_tokens=int(os.getenv("LLM_MAX_TOKENS", "2400")),
         timeout=60,
         max_retries=1,

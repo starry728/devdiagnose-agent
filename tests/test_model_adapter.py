@@ -15,7 +15,8 @@ class ScriptedModel(FakeMessagesListChatModel):
 
 
 @pytest.mark.parametrize("delegate", [False, True])
-def test_deepagents_invokes_search_and_records_evidence(client, monkeypatch, delegate):
+@pytest.mark.parametrize("provider_url", ["https://api.deepseek.com", "https://api.example.test/v1"])
+def test_deepagents_invokes_search_and_records_evidence(client, monkeypatch, delegate, provider_url):
     import langchain_openai
 
     responses = [
@@ -50,7 +51,14 @@ def test_deepagents_invokes_search_and_records_evidence(client, monkeypatch, del
             AIMessage(content="文档专家查到了参数变化 [E1]，需要实际验证。"),
         ]
     model = ScriptedModel(responses=responses)
-    monkeypatch.setattr(langchain_openai, "ChatOpenAI", lambda **kwargs: model)
+    captured = {}
+
+    def model_factory(**kwargs):
+        captured.update(kwargs)
+        return model
+
+    monkeypatch.setattr(langchain_openai, "ChatOpenAI", model_factory)
+    monkeypatch.setenv("LLM_BASE_URL", provider_url)
     monkeypatch.setenv("LLM_API_KEY", "offline-test-placeholder")
     monkeypatch.setenv("LLM_MODEL", "offline-test")
     # The harness writes events against an existing task.
@@ -76,5 +84,8 @@ def test_deepagents_invokes_search_and_records_evidence(client, monkeypatch, del
     result = run_model({"id": task_id, "question": QUESTION, "max_steps": 20}, example_sources())
     assert result["evidence"]
     assert result["invalid_citations"] == []
+    assert captured["extra_body"] == (
+        {"thinking": {"type": "disabled"}} if "deepseek" in provider_url else None
+    )
     assert result["metrics"]["model_calls"] == (4 if delegate else 2)
     assert any(e["stage"] == "tool" for e in store.task(task_id)["events"])
